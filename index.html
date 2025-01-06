@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title> Demo Trading</title>
+<script type="text/javascript" src="dojichart.min.js"></script>
+  <!--  <link rel="stylesheet" href="style.css">--> 
+</head>
+<header>
+    <style>
+        /* Основные стили для страницы */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #000000;
+    color: #333;
+}
+
+.container {
+    width: 80%;
+    margin: 0 auto;
+    text-align: center;
+}
+
+/* Стиль для заголовка */
+header {
+    background-color: rgb(0, 0, 0);
+    color: #fff;
+    padding: 20px 0;
+}
+
+.tit:hover {
+    color: rgb(0, 0, 0);
+    transition: color 2s;
+}
+
+h1 {
+    font-size: 2em;
+}
+
+/* Стили для панели управления */
+.dashboard {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+.dashboard > div {
+    width: 30%;
+}
+
+.tit {
+    font-size: 48px; /* Размер текста */
+    font-weight: bold; /* Жирность */
+    background: linear-gradient(to right, rgb(136, 0, 170), rgb(0, 255, 242)); /* Задаем градиент */
+    -webkit-background-clip: text; /* Применяем фон только к тексту */
+    -webkit-text-fill-color: transparent; /* Делаем текст прозрачным */
+  }
+
+.balance, .crypto-info {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    transition: background-color 50ms;
+width: 350px;
+height: 100px;
+}
+.crypto-info:hover {
+    box-shadow: 0 4px 6px #ffed00;
+}
+.balance:hover {
+    box-shadow: 0 4px 6px #ffed00;
+}
+.image {
+/* Контейнер с фоном */
+  background-image: url('https://i.yapx.cc/I3uXN.gif'); /* Устанавливаем GIF как фон */
+  background-size: cover; /* Масштабируем фон, чтобы он покрывал весь контейнер */
+  background-position: center; /* Центрируем фон */
+  background-repeat: no-repeat; /* Отключаем повтор фона */
+  display: flex; /* Если нужно размещать содержимое по центру */
+  justify-content: center;
+  align-items: center;
+  color: white; /* Цвет текста */
+  font-family: Arial, sans-serif;
+  text-shadow: 0 0 5px black; /* Тень для текста */
+    height: 650px;
+    max-width: auto;
+    padding: 0px;
+    margin: 0px;
+}
+
+.probel{
+    max-width: auto;
+    height: 50px;
+    background:linear-gradient(180deg, #000000, #000000)
+}
+h2, h3 {
+    font-size: 1.2em;
+    margin-bottom: 10px;
+}
+
+/* Кнопки */
+.actions button {
+    padding: 10px 20px;
+    background-color: #030303;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin: 10px 0;
+    transition: background-color 1s;
+    height: 80px;
+    width: 200px;
+}
+.actions button:hover {
+    background-color: #011100;
+}
+
+
+
+@media (max-width: 768px) {
+
+
+
+    * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #000000;
+    color: #333;
+}
+
+.container {
+    width: 80%;
+    margin: 0 auto;
+    text-align: center;
+}
+
+/* Стиль для заголовка */
+header {
+    background-color: rgb(0, 0, 0);
+    color: #fff;
+    padding: 10px 0;
+}
+.actions button {
+    padding: 2px 4px;
+    background-color: #030303;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin: 2px 0;
+    transition: background-color 1s;
+    height: 60px;
+    width: 75px;
+}
+.actions button:hover {
+    background-color: #011100;
+}
+.balance, .crypto-info {
+    background-color: #fff;
+    padding: 1px;
+    border-radius: 8px;
+    transition: background-color 50ms;
+width: 80px;
+height: 140px;
+font-size: 12px;
+text-align: center;
+}
+.probel{
+    max-width: auto;
+    height: 5px;
+    background:linear-gradient(180deg, #000000, #000000)}
+
+}
+.input{
+    opacity: 0;
+}
+.input:hover{
+    opacity: 1;
+}
+    </style>
+</header>
+<body>
+    <div class="container">
+        <header>
+            <h1 class="tit">XRP</h1>
+        </header>
+
+        <div class="dashboard">
+            <div class="balance">
+                <h2>Баланс: $<span id="balance">1000</span></h2>
+                <h3>XRP: <span id="catcoinAmount">0.0000</span></h3>
+            </div>
+            <div class="crypto-info">
+                <h3>Цена XRP: $<span id="currentPrice">2.440</span></h3>
+            </div>
+            <div class="actions">
+                <button id="buyBtn">Купить XRP</button>
+                <button id="sellBtn">Продать XRP</button>
+            </div>
+        </div>
+    </div>
+    <!--картинка с низу-->
+    <div class="probel"></div>
+    <div class="image">
+    </div>
+    <div class="input">
+        <input type="text" id="commandInput" placeholder="Введите команду">
+        <button onclick="addPoints()">Выполнить команду</button>
+    </div>
+    <script>
+        // Начальные данные
+        let initialPrice = 2.44; // Начальная цена Catcoin
+        let currentPrice = initialPrice;
+        let balance = 1000;
+        let catcoinAmount = 0;
+        let lastUpdatedTime = Date.now();
+        let maxPriceChangePercent = 100;
+        let maxPriceChangePerInterval = 0.5;
+        let lastMinuteUpdateTime = Date.now();
+
+        // Функция для обновления цены
+        function updatePrice() {
+            const currentTime = Date.now();
+            const timeElapsed = currentTime - lastUpdatedTime;
+
+            // Ограничиваем максимальное изменение цены на 29% от начальной цены
+            let maxAllowedChange = initialPrice * (maxPriceChangePercent / 100);
+            if (Math.abs(currentPrice - initialPrice) > maxAllowedChange) {
+                currentPrice = currentPrice < initialPrice ? initialPrice - maxAllowedChange : initialPrice + maxAllowedChange;
+            }
+            
+
+            // Ограничиваем максимальное изменение цены за 100 миллисекунд (максимум 2%)
+            let maxIntervalChange = currentPrice * (maxPriceChangePerInterval / 100);
+            if (timeElapsed >= 100) {
+                lastUpdatedTime = currentTime;
+                const priceChange = (Math.random() * 2 - 1) * maxIntervalChange;
+                currentPrice = Math.max(initialPrice - maxAllowedChange, Math.min(initialPrice + maxAllowedChange, currentPrice + priceChange));
+                document.getElementById('currentPrice').textContent = currentPrice.toFixed(2);
+            }
+
+            // Каждую минуту цена может измениться на случайное количество
+            if (currentTime - lastMinuteUpdateTime >= 5000) {
+                lastMinuteUpdateTime = currentTime;
+                const minuteChange = Math.random() < 0.5 ? -0.5 : 0.6;
+                const minuteChangeAmount = Math.random() * 0.1;
+                currentPrice += minuteChange * minuteChangeAmount;
+                document.getElementById('currentPrice').textContent = currentPrice.toFixed(2);
+            }
+
+        }
+        // Функция для покупки Catcoin
+        function buyCatcoin() {
+            const amountToBuy = balance / currentPrice;
+            catcoinAmount += amountToBuy;
+            balance = 0;
+            updateBalance();
+        }
+
+        // Функция для продажи Catcoin
+        function sellCatcoin() {
+            balance += catcoinAmount * currentPrice;
+            catcoinAmount = 0;
+            updateBalance();
+        }
+
+        // Функция для обновления баланса и количества Catcoin
+        function updateBalance() {
+            document.getElementById('balance').textContent = balance.toFixed(2);
+            document.getElementById('catcoinAmount').textContent = catcoinAmount.toFixed(4);
+        }
+
+        // Обработчики кнопок для покупки и продажи
+        document.getElementById('buyBtn').addEventListener('click', buyCatcoin);
+        document.getElementById('sellBtn').addEventListener('click', sellCatcoin);
+        
+        // Массив цветов для фона
+        const colors = [
+  "#0099ff", "#009eff", "#00a4ff", "#00a9ff", "#00aeff", "#00b4ff",
+  "#00b9ff", "#00bfff", "#00c4ff", "#00c9ff", "#00cfff", "#00d4ff",
+  "#00d9ff", "#00dfff", "#00e4ff", "#00eaff", "#00efff", "#00f4ff",
+  "#00faff", "#00ffff", "#00faff", "#00f4ff", "#00efff", "#00eaff", "#00e4ff",
+  "#00dfff", "#00d9ff", "#00d4ff", "#00cfff", "#00c9ff", "#00c4ff",
+  "#00bfff", "#00b9ff", "#00b4ff", "#00aeff", "#00a9ff", "#00a4ff",
+  "#009eff"
+];
+
+
+
+
+let currentIndex = 0;
+
+// Функция для смены фона элементов
+function changeBackground() {
+    const elements = document.querySelectorAll('.balance, .crypto-info');
+    
+    elements.forEach(element => {
+        element.style.backgroundColor = colors[currentIndex];
+    });
+    
+    // Сдвигаем индекс
+    currentIndex = (currentIndex + 1) % colors.length;
+}
+function addPoints() {
+            // Получаем команду из поля ввода
+            const command = document.getElementById("commandInput").value.trim().toLowerCase();
+            
+            // Проверяем, соответствует ли команда ожидаемой
+            if (command === "rod") {
+                balance += 1000;  // Добавляем 1000 очков
+                document.getElementById("scoreDisplay").textContent = "Очки: " + balance;
+                document.getElementById("commandInput").value = "";  // Очищаем поле ввода
+            }}
+
+// Устанавливаем интервал в 0.5 секунды
+setInterval(changeBackground, 100);
+
+// Меняем фон сразу при загрузке страницы
+changeBackground();
+
+        // Обновление данных каждую 100 миллисекунд
+        setInterval(updatePrice, 700);
+    </script>
+</body>
+</html>
