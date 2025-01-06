@@ -1,338 +1,204 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <title>Trading</title>
-<script type="text/javascript" src="dojichart.min.js"></script>
-  <!--  <link rel="stylesheet" href="style.css">--> 
-</head>
-<header>
+    <title>Криптобиржа</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* Основные стили для страницы */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: Arial, sans-serif;
-    background-color: #000000;
-    color: #333;
-}
-
-.container {
-    width: 80%;
-    margin: 0 auto;
-    text-align: center;
-}
-
-/* Стиль для заголовка */
-header {
-    background-color: rgb(0, 0, 0);
-    color: #fff;
-    padding: 20px 0;
-}
-
-.tit:hover {
-    color: rgb(0, 0, 0);
-    transition: color 2s;
-}
-
-h1 {
-    font-size: 2em;
-}
-
-/* Стили для панели управления */
-.dashboard {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 20px;
-}
-
-.dashboard > div {
-    width: 30%;
-}
-
-.tit {
-    font-size: 48px; /* Размер текста */
-    font-weight: bold; /* Жирность */
-    background: linear-gradient(to right, rgb(136, 0, 170), rgb(0, 255, 242)); /* Задаем градиент */
-    -webkit-background-clip: text; /* Применяем фон только к тексту */
-    -webkit-text-fill-color: transparent; /* Делаем текст прозрачным */
-  }
-
-.balance, .crypto-info {
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    transition: background-color 50ms;
-width: 350px;
-height: 100px;
-}
-.crypto-info:hover {
-    box-shadow: 0 4px 6px #ffed00;
-}
-.balance:hover {
-    box-shadow: 0 4px 6px #ffed00;
-}
-.image {
-/* Контейнер с фоном */
-  background-image: url('https://i.yapx.cc/I3uXN.gif'); /* Устанавливаем GIF как фон */
-  background-size: cover; /* Масштабируем фон, чтобы он покрывал весь контейнер */
-  background-position: center; /* Центрируем фон */
-  background-repeat: no-repeat; /* Отключаем повтор фона */
-  display: flex; /* Если нужно размещать содержимое по центру */
-  justify-content: center;
-  align-items: center;
-  color: white; /* Цвет текста */
-  font-family: Arial, sans-serif;
-  text-shadow: 0 0 5px black; /* Тень для текста */
-    height: 650px;
-    max-width: auto;
-    padding: 0px;
-    margin: 0px;
-}
-
-.probel{
-    max-width: auto;
-    height: 50px;
-    background:linear-gradient(180deg, #000000, #000000)
-}
-h2, h3 {
-    font-size: 1.2em;
-    margin-bottom: 10px;
-}
-
-/* Кнопки */
-.actions button {
-    padding: 10px 20px;
-    background-color: #030303;
-    color: #fff;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    margin: 10px 0;
-    transition: background-color 1s;
-    height: 80px;
-    width: 200px;
-}
-.actions button:hover {
-    background-color: #011100;
-}
-
-
-
-@media (max-width: 768px) {
-
-
-
-    * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: Arial, sans-serif;
-    background-color: #000000;
-    color: #333;
-}
-
-.container {
-    width: 80%;
-    margin: 0 auto;
-    text-align: center;
-}
-
-/* Стиль для заголовка */
-header {
-    background-color: rgb(0, 0, 0);
-    color: #fff;
-    padding: 10px 0;
-}
-.actions button {
-    padding: 2px 4px;
-    background-color: #030303;
-    color: #fff;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    margin: 2px 0;
-    transition: background-color 1s;
-    height: 60px;
-    width: 75px;
-}
-.actions button:hover {
-    background-color: #011100;
-}
-.balance, .crypto-info {
-    background-color: #fff;
-    padding: 1px;
-    border-radius: 8px;
-    transition: background-color 50ms;
-width: 80px;
-height: 140px;
-font-size: 12px;
-text-align: center;
-}
-.probel{
-    max-width: auto;
-    height: 5px;
-    background:linear-gradient(180deg, #000000, #000000)}
-
-}
-.input{
-    opacity: 0;
-}
-.input:hover{
-    opacity: 1;
-}
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+            background-color: #121212;
+            color: #ffffff;
+        }
+        canvas {
+            max-width: 600px;
+            margin: auto;
+        }
+        #top-bar {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+            background-color: #1e1e1e;
+            padding: 10px;
+            border-radius: 10px;
+        }
+        #history {
+            margin-top: 20px;
+            max-width: 600px;
+            margin: auto;
+            text-align: left;
+            background-color: #1e1e1e;
+            padding: 10px;
+            border-radius: 10px;
+        }
+        select, button, input {
+            background-color: #1e1e1e;
+            color: #ffffff;
+            border: 1px solid #ffffff;
+            border-radius: 5px;
+            padding: 5px 10px;
+            margin: 5px;
+        }
     </style>
-</header>
+</head>
 <body>
-    <div class="container">
-        <header>
-            <h1 class="tit">XRP</h1>
-        </header>
+    <div id="login-form">
+        <h2>Вход</h2>
+        <input type="text" id="username" placeholder="Логин">
+        <input type="password" id="password" placeholder="Пароль">
+        <button onclick="login()">Войти</button>
+        <button onclick="register()">Зарегистрироваться</button>
+    </div>
 
-        <div class="dashboard">
-            <div class="balance">
-                <h2>Баланс: $<span id="balance">1000</span></h2>
-                <h3>XRP: <span id="catcoinAmount">0.0000</span></h3>
-            </div>
-            <div class="crypto-info">
-                <h3>Цена XRP: $<span id="currentPrice">2.440</span></h3>
-            </div>
-            <div class="actions">
-                <button id="buyBtn">Купить XRP</button>
-                <button id="sellBtn">Продать XRP</button>
-            </div>
+    <div id="main-content" style="display: none;">
+        <div id="top-bar">
+            <div>Пользователь: <span id="current-user"></span></div>
+            <div>Баланс: <span id="balance">0</span> USD</div>
+            <div>BTC: <span id="crypto-btc">0</span></div>
+            <div>ETH: <span id="crypto-eth">0</span></div>
+            <div>ADA: <span id="crypto-ada">0</span></div>
+        </div>
+
+        <h1>Криптобиржа</h1>
+        <div>
+            <label for="currency">Выберите криптовалюту:</label>
+            <select id="currency" onchange="changeCurrency()">
+                <option value="btc">BTC</option>
+                <option value="eth">ETH</option>
+                <option value="ada">ADA</option>
+            </select>
+        </div>
+
+        <canvas id="chart"></canvas>
+
+        <button onclick="buyCryptoMax()">Купить максимум</button>
+        <button onclick="sellCrypto()">Продать</button>
+
+        <div id="history">
+            <h3>История операций:</h3>
+            <ul id="history-list"></ul>
         </div>
     </div>
-    <!--картинка с низу-->
-    <div class="probel"></div>
-    <div class="image">
-    </div>
-    <div class="input">
-        <input type="text" id="commandInput" placeholder="Введите команду">
-        <button onclick="addPoints()">Выполнить команду</button>
-    </div>
+
     <script>
-        // Начальные данные
-        let initialPrice = 2.44; // Начальная цена Catcoin
-        let currentPrice = initialPrice;
-        let balance = 1000;
-        let catcoinAmount = 0;
-        let lastUpdatedTime = Date.now();
-        let maxPriceChangePercent = 100;
-        let maxPriceChangePerInterval = 0.5;
-        let lastMinuteUpdateTime = Date.now();
+        const ctx = document.getElementById('chart').getContext('2d');
 
-        // Функция для обновления цены
-        function updatePrice() {
-            const currentTime = Date.now();
-            const timeElapsed = currentTime - lastUpdatedTime;
+        const labels = [];
+        const prices = [];
 
-            // Ограничиваем максимальное изменение цены на 29% от начальной цены
-            let maxAllowedChange = initialPrice * (maxPriceChangePercent / 100);
-            if (Math.abs(currentPrice - initialPrice) > maxAllowedChange) {
-                currentPrice = currentPrice < initialPrice ? initialPrice - maxAllowedChange : initialPrice + maxAllowedChange;
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Цена BTC/USD',
+                    data: prices,
+                    borderColor: 'rgb(75, 192, 192)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Время',
+                            color: '#ffffff'
+                        },
+                        ticks: {
+                            color: '#ffffff'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Цена (USD)',
+                            color: '#ffffff'
+                        },
+                        ticks: {
+                            color: '#ffffff'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#ffffff'
+                        }
+                    }
+                }
             }
-            
+        });
 
-            // Ограничиваем максимальное изменение цены за 100 миллисекунд (максимум 2%)
-            let maxIntervalChange = currentPrice * (maxPriceChangePerInterval / 100);
-            if (timeElapsed >= 100) {
-                lastUpdatedTime = currentTime;
-                const priceChange = (Math.random() * 2 - 1) * maxIntervalChange;
-                currentPrice = Math.max(initialPrice - maxAllowedChange, Math.min(initialPrice + maxAllowedChange, currentPrice + priceChange));
-                document.getElementById('currentPrice').textContent = currentPrice.toFixed(2);
+        let currentUser = null;
+        let currentCurrency = 'btc';
+        let currentPrice = 100;
+
+        async function fetchPrices() {
+            try {
+                const response = await fetch('https://your-server.herokuapp.com/get_prices');  // Замените на URL вашего сервера
+                const data = await response.json();
+                for (const key in data) {
+                    data[key] = (data[key] * (0.95 + Math.random() * 0.1)).toFixed(2);
+                }
+                currentPrice = data[currentCurrency];
+                prices.push(currentPrice);
+                labels.push(new Date().toLocaleTimeString());
+
+                if (prices.length > 10) {
+                    prices.shift();
+                    labels.shift();
+                }
+
+                chart.data.labels = labels;
+                chart.data.datasets[0].data = prices;
+                chart.update();
+            } catch (error) {
+                console.error('Ошибка при получении цен:', error);
             }
-
-            // Каждую минуту цена может измениться на случайное количество
-            if (currentTime - lastMinuteUpdateTime >= 5000) {
-                lastMinuteUpdateTime = currentTime;
-                const minuteChange = Math.random() < 0.5 ? -0.5 : 0.6;
-                const minuteChangeAmount = Math.random() * 0.1;
-                currentPrice += minuteChange * minuteChangeAmount;
-                document.getElementById('currentPrice').textContent = currentPrice.toFixed(2);
-            }
-
-        }
-        // Функция для покупки Catcoin
-        function buyCatcoin() {
-            const amountToBuy = balance / currentPrice;
-            catcoinAmount += amountToBuy;
-            balance = 0;
-            updateBalance();
         }
 
-        // Функция для продажи Catcoin
-        function sellCatcoin() {
-            balance += catcoinAmount * currentPrice;
-            catcoinAmount = 0;
-            updateBalance();
+        function updateUI(data) {
+            document.getElementById('current-user').textContent = data.username;
+            document.getElementById('balance').textContent = data.balance;
+            document.getElementById('crypto-btc').textContent = data.crypto.btc;
+            document.getElementById('crypto-eth').textContent = data.crypto.eth;
+            document.getElementById('crypto-ada').textContent = data.crypto.ada;
         }
 
-        // Функция для обновления баланса и количества Catcoin
-        function updateBalance() {
-            document.getElementById('balance').textContent = balance.toFixed(2);
-            document.getElementById('catcoinAmount').textContent = catcoinAmount.toFixed(4);
+        function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            fetch(`https://your-server.herokuapp.com/login?username=${username}&password=${password}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        currentUser = data;
+                        document.getElementById('login-form').style.display = 'none';
+                        document.getElementById('main-content').style.display = 'block';
+                        updateUI(data);
+                    } else {
+                        alert(data.message);
+                    }
+                });
         }
 
-        // Обработчики кнопок для покупки и продажи
-        document.getElementById('buyBtn').addEventListener('click', buyCatcoin);
-        document.getElementById('sellBtn').addEventListener('click', sellCatcoin);
-        
-        // Массив цветов для фона
-        const colors = [
-  "#0099ff", "#009eff", "#00a4ff", "#00a9ff", "#00aeff", "#00b4ff",
-  "#00b9ff", "#00bfff", "#00c4ff", "#00c9ff", "#00cfff", "#00d4ff",
-  "#00d9ff", "#00dfff", "#00e4ff", "#00eaff", "#00efff", "#00f4ff",
-  "#00faff", "#00ffff", "#00faff", "#00f4ff", "#00efff", "#00eaff", "#00e4ff",
-  "#00dfff", "#00d9ff", "#00d4ff", "#00cfff", "#00c9ff", "#00c4ff",
-  "#00bfff", "#00b9ff", "#00b4ff", "#00aeff", "#00a9ff", "#00a4ff",
-  "#009eff"
-];
+        function register() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            fetch(`https://your-server.herokuapp.com/register?username=${username}&password=${password}`)
+                .then(res => res.json())
+                .then(data => {
+                    alert(data.message);
+                });
+        }
 
-
-
-
-let currentIndex = 0;
-
-// Функция для смены фона элементов
-function changeBackground() {
-    const elements = document.querySelectorAll('.balance, .crypto-info');
-    
-    elements.forEach(element => {
-        element.style.backgroundColor = colors[currentIndex];
-    });
-    
-    // Сдвигаем индекс
-    currentIndex = (currentIndex + 1) % colors.length;
-}
-function addPoints() {
-            // Получаем команду из поля ввода
-            const command = document.getElementById("commandInput").value.trim().toLowerCase();
-            
-            // Проверяем, соответствует ли команда ожидаемой
-            if (command === "rod") {
-                balance += 1000;  // Добавляем 1000 очков
-                document.getElementById("scoreDisplay").textContent = "Очки: " + balance;
-                document.getElementById("commandInput").value = "";  // Очищаем поле ввода
-            }}
-
-// Устанавливаем интервал в 0.5 секунды
-setInterval(changeBackground, 100);
-
-// Меняем фон сразу при загрузке страницы
-changeBackground();
-
-        // Обновление данных каждую 100 миллисекунд
-        setInterval(updatePrice, 700);
+        setInterval(fetchPrices, 1000);
     </script>
 </body>
 </html>
+
