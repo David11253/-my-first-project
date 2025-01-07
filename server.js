@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 
 const app = express();
-const PORT = process.env.PORT || 3000; // Учитываем PORT из окружения (Render)
+const PORT = process.env.PORT || 3000; // Используем порт из Render
 
 const DATA_FILE = path.join(__dirname, 'users.json');
 
@@ -53,3 +53,4 @@ app.post('/auth', (req, res) => {
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
+
