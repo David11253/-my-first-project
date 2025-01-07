@@ -3,11 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crypto Trading Game</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Crypto Game</title>
+    <style>
+        body { background-color: #121212; color: #ffffff; font-family: Arial, sans-serif; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        button { padding: 10px; margin: 5px; }
+    </style>
 </head>
 <body>
-   <p> сервер работает?</p>
+    <div class="container">
+        <h1>Crypto Game</h1>
+        <div id="auth">
+            <input id="username" placeholder="Имя" />
+            <input id="password" placeholder="Пароль" type="password" />
+            <button onclick="auth()">Войти/Зарегистрироваться</button>
+        </div>
+        <div id="game" style="display: none;">
+            <h2>Баланс: $<span id="balance">0</span></h2>
+            <h2>Цена криптовалюты: $<span id="price">0</span></h2>
+            <button onclick="trade('buy')">Купить</button>
+            <button onclick="trade('sell')">Продать</button>
+            <h3>История:</h3>
+            <ul id="events"></ul>
+        </div>
+    </div>
+    <script>
+        let username, balance = 0;
+
+        function auth() {
+            username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            fetch('/auth', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    balance = data.balance;
+                    document.getElementById('auth').style.display = 'none';
+                    document.getElementById('game').style.display = 'block';
+                    updateGame();
+                } else {
+                    alert(data.message);
+                }
+            });
+        }
+
+        function updateGame() {
+            fetch('/price')
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('price').innerText = data.price;
+                });
+            fetch('/events')
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('events').innerHTML = data.map(e => `<li>${e}</li>`).join('');
+                });
+            document.getElementById('balance').innerText = balance;
+        }
+
+        function trade(type) {
+            const amount = prompt(`Сколько криптовалюты вы хотите ${type === 'buy' ? 'купить' : 'продать'}?`);
+            const price = document.getElementById('price').innerText;
+            fetch('/trade', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, type, amount: +amount, price: +price })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    balance = data.balance;
+                    updateGame();
+                } else {
+                    alert(data.message);
+                }
+            });
+        }
+    </script>
 </body>
 </html>
-
