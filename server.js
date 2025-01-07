@@ -1,56 +1,60 @@
-
 const express = require('express');
-const bodyParser = require('body-parser');
-const cors = require('cors');
 const fs = require('fs');
-const path = require('path');
-
 const app = express();
-const PORT = process.env.PORT || 3000; // Учитываем PORT из окружения (Render)
+const port = 3000;
 
-const DATA_FILE = path.join(__dirname, 'users.json');
+app.use(express.static('public'));
+app.use(express.json());
 
-// Middleware
-app.use(cors());
-app.use(bodyParser.json());
+// Изначальные данные пользователей (можно хранить в отдельном JSON файле)
+let users = [];
 
-// Создаём файл, если его нет
-if (!fs.existsSync(DATA_FILE)) {
-    fs.writeFileSync(DATA_FILE, JSON.stringify({}));
-}
-
-function readUserData() {
-    return JSON.parse(fs.readFileSync(DATA_FILE));
-}
-
-function writeUserData(data) {
-    fs.writeFileSync(DATA_FILE, JSON.stringify(data));
-}
-
-// API Endpoints
-app.post('/auth', (req, res) => {
+// Регистрация нового пользователя
+app.post('/register', (req, res) => {
     const { username, password } = req.body;
 
-    if (!username || !password) {
-        return res.status(400).json({ success: false, message: 'Username and password are required.' });
+    if (users.some(user => user.username === username)) {
+        return res.json({ success: false });
     }
 
-    const users = readUserData();
+    const newUser = {
+        username,
+        password,
+        balance: 1000,
+        history: []
+    };
 
-    if (users[username]) {
-        if (users[username].password === password) {
-            return res.json({ success: true, balance: users[username].balance });
-        } else {
-            return res.status(401).json({ success: false, message: 'Incorrect password.' });
-        }
+    users.push(newUser);
+    res.json({ success: true });
+});
+
+// Вход пользователя
+app.post('/login', (req, res) => {
+    const { username, password } = req.body;
+    const user = users.find(u => u.username === username && u.password === password);
+
+    if (user) {
+        res.json({ success: true, user });
     } else {
-        users[username] = { password, balance: 1000 };
-        writeUserData(users);
-        return res.json({ success: true, balance: 1000 });
+        res.json({ success: false });
     }
 });
 
-// Запуск сервера
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+// Покупка криптовалюты
+app.post('/buy', (req, res) => {
+    const price = Math.floor(Math.random() * 1000) + 1; // случайная цена
+    const newBalance = 1000 - price;
+    res.json({ newBalance });
 });
+
+// Продажа криптовалюты
+app.post('/sell', (req, res) => {
+    const price = Math.floor(Math.random() * 1000) + 1; // случайная цена
+    const newBalance = 1000 + price;
+    res.json({ newBalance });
+});
+
+app.listen(port, () => {
+    console.log(`Server is running at http://localhost:${port}`);
+});
+
