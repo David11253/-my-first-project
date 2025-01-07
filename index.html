@@ -1,10 +1,11 @@
 
-    <!DOCTYPE html>
+   <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Криптовалютная  игра</title>
+    <title>Криптовалютная игра</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -33,6 +34,12 @@
         .btn:hover {
             background-color: #555;
         }
+
+        canvas {
+            margin-top: 20px;
+            max-width: 100%;
+            height: 300px;
+        }
     </style>
 </head>
 <body>
@@ -48,14 +55,22 @@
     <div id="game-area">
         <h2>Добро пожаловать, <span id="user-name"></span></h2>
         <p>Баланс: $<span id="balance">1000</span></p>
+        <p>Криптовалюта: <span id="crypto-balance">0</span></p>
         <button class="btn" onclick="buyCrypto()">Купить криптовалюту</button>
         <button class="btn" onclick="sellCrypto()">Продать криптовалюту</button>
         <h3>История операций</h3>
         <ul id="history"></ul>
+
+        <h3>Цена криптовалюты</h3>
+        <p>Текущая цена: $<span id="crypto-price">0</span></p>
+
+        <h3>График цены криптовалюты</h3>
+        <canvas id="crypto-chart"></canvas>
     </div>
 
     <script>
         let currentUser = null;
+        let cryptoPriceHistory = [];
 
         // Логика для входа
         function login() {
@@ -73,8 +88,10 @@
                     currentUser = data.user;
                     document.getElementById('user-name').textContent = currentUser.username;
                     document.getElementById('balance').textContent = currentUser.balance;
+                    document.getElementById('crypto-balance').textContent = currentUser.cryptoBalance;
                     document.getElementById('auth-form').style.display = 'none';
                     document.getElementById('game-area').style.display = 'block';
+                    updateCryptoPrice(data.cryptoPrice);
                 } else {
                     alert('Неверный логин или пароль');
                 }
@@ -108,7 +125,9 @@
                 .then(response => response.json())
                 .then(data => {
                     currentUser.balance = data.newBalance;
+                    currentUser.cryptoBalance += data.cryptoAmount;
                     document.getElementById('balance').textContent = currentUser.balance;
+                    document.getElementById('crypto-balance').textContent = currentUser.cryptoBalance;
                     updateHistory('Купил криптовалюту');
                 });
         }
@@ -119,12 +138,14 @@
                 .then(response => response.json())
                 .then(data => {
                     currentUser.balance = data.newBalance;
+                    currentUser.cryptoBalance -= data.cryptoAmount;
                     document.getElementById('balance').textContent = currentUser.balance;
+                    document.getElementById('crypto-balance').textContent = currentUser.cryptoBalance;
                     updateHistory('Продал криптовалюту');
                 });
         }
 
-        // Обновление истории
+        // Обновление истории операций
         function updateHistory(action) {
             const history = document.getElementById('history');
             const newEntry = document.createElement('li');
@@ -135,6 +156,36 @@
             if (history.children.length > 7) {
                 history.removeChild(history.lastChild);
             }
+        }
+
+        // Обновление графика цены криптовалюты
+        function updateCryptoPrice(price) {
+            cryptoPriceHistory.push(price);
+            if (cryptoPriceHistory.length > 10) {
+                cryptoPriceHistory.shift();
+            }
+
+            document.getElementById('crypto-price').textContent = price;
+
+            const ctx = document.getElementById('crypto-chart').getContext('2d');
+            const chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: cryptoPriceHistory.map((_, index) => index + 1),
+                    datasets: [{
+                        label: 'Цена криптовалюты',
+                        data: cryptoPriceHistory,
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 1,
+                        fill: false
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
         }
     </script>
 </body>
