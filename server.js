@@ -5,7 +5,16 @@ const app = express();
 const port = 3000;
 
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
+
+// Генерация цены криптовалюты
+function generateCryptoPrice() {
+    return Math.floor(Math.random() * 1000) + 1;
+}
+
+// Главная страница (index.html) - теперь из корня проекта
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 // Чтение пользователей из файла
 function readUsers() {
@@ -17,16 +26,6 @@ function readUsers() {
 function writeUsers(users) {
     fs.writeFileSync('users.json', JSON.stringify(users, null, 2), 'utf8');
 }
-
-// Генерация цены криптовалюты
-function generateCryptoPrice() {
-    return Math.floor(Math.random() * 1000) + 1;
-}
-
-// Главная страница (index.html)
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
 
 // Регистрация нового пользователя
 app.post('/register', (req, res) => {
@@ -66,18 +65,17 @@ app.post('/login', (req, res) => {
 
 // Покупка криптовалюты
 app.post('/buy', (req, res) => {
-    const { username } = req.body;
+    const { username, amount } = req.body; // amount передается от клиента
     const users = readUsers();
     const user = users.find(u => u.username === username);
 
     const cryptoPrice = generateCryptoPrice();
-    const cryptoAmount = Math.floor(Math.random() * 10) + 1; // случайное количество криптовалюты
 
     // Проверка, хватает ли у пользователя средств
-    if (user.balance >= cryptoPrice * cryptoAmount) {
-        user.balance -= cryptoPrice * cryptoAmount;
-        user.cryptoBalance += cryptoAmount;
-        user.history.push(`Купил ${cryptoAmount} криптовалюты за $${cryptoPrice * cryptoAmount}`);
+    if (user.balance >= cryptoPrice * amount) {
+        user.balance -= cryptoPrice * amount;
+        user.cryptoBalance += amount;
+        user.history.push(`Купил ${amount} криптовалюты за $${cryptoPrice * amount}`);
 
         writeUsers(users);
         res.json({ success: true, newBalance: user.balance, cryptoAmount: user.cryptoBalance });
