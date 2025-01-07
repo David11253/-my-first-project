@@ -6,16 +6,6 @@ const port = 3000;
 
 app.use(express.json());
 
-// Генерация цены криптовалюты
-function generateCryptoPrice() {
-    return Math.floor(Math.random() * 1000) + 1;
-}
-
-// Главная страница (index.html) - теперь из корня проекта
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
-});
-
 // Чтение пользователей из файла
 function readUsers() {
     const data = fs.readFileSync('users.json', 'utf8');
@@ -27,15 +17,27 @@ function writeUsers(users) {
     fs.writeFileSync('users.json', JSON.stringify(users, null, 2), 'utf8');
 }
 
+// Генерация цены криптовалюты
+function generateCryptoPrice() {
+    return Math.floor(Math.random() * 1000) + 1;
+}
+
+// Главная страница (index.html) - теперь из корня проекта
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html')); // отправка index.html из корня проекта
+});
+
 // Регистрация нового пользователя
 app.post('/register', (req, res) => {
     const { username, password } = req.body;
     const users = readUsers();
 
+    // Проверяем, есть ли уже пользователь с таким ником
     if (users.some(user => user.username === username)) {
-        return res.json({ success: false });
+        return res.json({ success: false }); // Пользователь уже существует
     }
 
+    // Создаем нового пользователя
     const newUser = {
         username,
         password,
@@ -44,9 +46,11 @@ app.post('/register', (req, res) => {
         history: ["Иван зарегистрировался"]
     };
 
+    // Добавляем нового пользователя в список
     users.push(newUser);
     writeUsers(users);
-    res.json({ success: true });
+
+    res.json({ success: true }); // Успешная регистрация
 });
 
 // Вход пользователя
