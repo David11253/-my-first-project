@@ -1,18 +1,22 @@
 const express = require('express');
-const fs = require('fs');
 const app = express();
 const port = 3000;
 
-app.use(express.static('public'));
-app.use(express.json());
-
-// Изначальные данные пользователей (можно хранить в отдельном JSON файле)
+// Список пользователей
 let users = [];
+
+// Для обработки JSON запросов
+app.use(express.json());
+app.use(express.static('public'));
+
+// Главная страница
+app.get('/', (req, res) => {
+    res.sendFile(__dirname + '/index.html');
+});
 
 // Регистрация нового пользователя
 app.post('/register', (req, res) => {
     const { username, password } = req.body;
-
     if (users.some(user => user.username === username)) {
         return res.json({ success: false });
     }
@@ -42,14 +46,14 @@ app.post('/login', (req, res) => {
 
 // Покупка криптовалюты
 app.post('/buy', (req, res) => {
-    const price = Math.floor(Math.random() * 1000) + 1; // случайная цена
+    const price = Math.floor(Math.random() * 1000) + 1;
     const newBalance = 1000 - price;
     res.json({ newBalance });
 });
 
 // Продажа криптовалюты
 app.post('/sell', (req, res) => {
-    const price = Math.floor(Math.random() * 1000) + 1; // случайная цена
+    const price = Math.floor(Math.random() * 1000) + 1;
     const newBalance = 1000 + price;
     res.json({ newBalance });
 });
@@ -57,4 +61,3 @@ app.post('/sell', (req, res) => {
 app.listen(port, () => {
     console.log(`Server is running at http://localhost:${port}`);
 });
-
