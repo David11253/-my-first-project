@@ -1,15 +1,19 @@
 {
   "name": "crypto-game",
   "version": "1.0.0",
-  "description": "Игра с криптовалютой на сервере и фронтенде",
+  "description": "Игра с криптовалютой с авторизацией и сохранением баланса",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
-    "express": "^4.17.1"
+    "express": "^4.18.2",
+    "chart.js": "^3.8.0"
   },
   "devDependencies": {},
+  "engines": {
+    "node": ">=14.0.0"
+  },
   "author": "",
   "license": "ISC"
 }
