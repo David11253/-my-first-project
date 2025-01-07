@@ -1,10 +1,11 @@
 const express = require('express');
 const fs = require('fs');
+const path = require('path');
 const app = express();
 const port = 3000;
 
 app.use(express.json());
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Чтение пользователей из файла
 function readUsers() {
@@ -22,6 +23,11 @@ function generateCryptoPrice() {
     return Math.floor(Math.random() * 1000) + 1;
 }
 
+// Главная страница (index.html)
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
 // Регистрация нового пользователя
 app.post('/register', (req, res) => {
     const { username, password } = req.body;
@@ -36,7 +42,7 @@ app.post('/register', (req, res) => {
         password,
         balance: 1000,
         cryptoBalance: 0,
-        history: [],
+        history: ["Иван зарегистрировался"]
     };
 
     users.push(newUser);
@@ -60,22 +66,48 @@ app.post('/login', (req, res) => {
 
 // Покупка криптовалюты
 app.post('/buy', (req, res) => {
-    const cryptoPrice = generateCryptoPrice();
-    const cryptoAmount = Math.floor(Math.random() * 10) + 1; // количество криптовалюты
-    const newBalance = 1000 - cryptoPrice * cryptoAmount;
+    const { username } = req.body;
+    const users = readUsers();
+    const user = users.find(u => u.username === username);
 
-    res.json({ newBalance, cryptoAmount });
+    const cryptoPrice = generateCryptoPrice();
+    const cryptoAmount = Math.floor(Math.random() * 10) + 1; // случайное количество криптовалюты
+
+    // Проверка, хватает ли у пользователя средств
+    if (user.balance >= cryptoPrice * cryptoAmount) {
+        user.balance -= cryptoPrice * cryptoAmount;
+        user.cryptoBalance += cryptoAmount;
+        user.history.push(`Купил ${cryptoAmount} криптовалюты за $${cryptoPrice * cryptoAmount}`);
+
+        writeUsers(users);
+        res.json({ success: true, newBalance: user.balance, cryptoAmount: user.cryptoBalance });
+    } else {
+        res.json({ success: false, message: "Недостаточно средств для покупки" });
+    }
 });
 
 // Продажа криптовалюты
 app.post('/sell', (req, res) => {
-    const cryptoPrice = generateCryptoPrice();
-    const cryptoAmount = Math.floor(Math.random() * 10) + 1; // количество криптовалюты
-    const newBalance = 1000 + cryptoPrice * cryptoAmount;
+    const { username } = req.body;
+    const users = readUsers();
+    const user = users.find(u => u.username === username);
 
-    res.json({ newBalance, cryptoAmount });
+    const cryptoPrice = generateCryptoPrice();
+    const cryptoAmount = Math.min(user.cryptoBalance, Math.floor(Math.random() * 10) + 1); // случайное количество криптовалюты для продажи
+
+    if (cryptoAmount > 0) {
+        user.balance += cryptoPrice * cryptoAmount;
+        user.cryptoBalance -= cryptoAmount;
+        user.history.push(`Продал ${cryptoAmount} криптовалюты за $${cryptoPrice * cryptoAmount}`);
+
+        writeUsers(users);
+        res.json({ success: true, newBalance: user.balance, cryptoAmount: user.cryptoBalance });
+    } else {
+        res.json({ success: false, message: "Недостаточно криптовалюты для продажи" });
+    }
 });
 
+// Запуск сервера
 app.listen(port, () => {
     console.log(`Server is running at http://localhost:${port}`);
 });
