@@ -4,189 +4,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Криптовалютная игра</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #121212;
-            color: #fff;
-            text-align: center;
-        }
-
-        #auth-form, #game-area {
-            margin-top: 50px;
-        }
-
-        #game-area {
-            display: none;
-        }
-
-        .btn {
-            padding: 10px 20px;
-            background-color: #444;
-            border: none;
-            color: white;
-            cursor: pointer;
-            margin: 10px;
-        }
-
-        .btn:hover {
-            background-color: #555;
-        }
-
-        canvas {
-            margin-top: 20px;
-            max-width: 100%;
-            height: 300px;
-        }
-    </style>
+    <title>Игра с криптовалютой</title>
 </head>
 <body>
+    <h1>Криптовалютная игра</h1>
 
-    <div id="auth-form">
-        <h1>Регистрация / Вход</h1>
-        <input type="text" id="username" placeholder="Введите никнейм" required><br>
-        <input type="password" id="password" placeholder="Введите пароль" required><br>
-        <button class="btn" onclick="login()">Войти</button>
-        <button class="btn" onclick="register()">Зарегистрироваться</button>
-    </div>
+    <h2>Текущая цена криптовалюты: <span id="crypto-price">Загрузка...</span></h2>
 
-    <div id="game-area">
-        <h2>Добро пожаловать, <span id="user-name"></span></h2>
-        <p>Баланс: $<span id="balance">1000</span></p>
-        <p>Криптовалюта: <span id="crypto-balance">0</span></p>
-        <button class="btn" onclick="buyCrypto()">Купить криптовалюту</button>
-        <button class="btn" onclick="sellCrypto()">Продать криптовалюту</button>
-        <h3>История операций</h3>
+    <div id="user-info" style="display:none;">
+        <h3>Привет, <span id="username-display"></span>!</h3>
+        <p>Баланс: <span id="balance-display">0</span>$</p>
+        <p>Криптовалюта: <span id="crypto-balance-display">0</span></p>
+        <button id="buy-button">Купить</button>
+        <button id="sell-button">Продать</button>
+        <h3>История операций:</h3>
         <ul id="history"></ul>
-
-        <h3>Цена криптовалюты</h3>
-        <p>Текущая цена: $<span id="crypto-price">0</span></p>
-
-        <h3>График цены криптовалюты</h3>
-        <canvas id="crypto-chart"></canvas>
     </div>
+
+    <form id="auth-form">
+        <h3>Регистрация / Вход</h3>
+        <label>Никнейм: <input type="text" id="username"></label><br>
+        <label>Пароль: <input type="password" id="password"></label><br>
+        <button type="submit">Войти / Зарегистрироваться</button>
+    </form>
 
     <script>
         let currentUser = null;
-        let cryptoPriceHistory = [];
 
-        // Логика для входа
-        function login() {
+        // Функция для получения текущей цены
+        function fetchCryptoPrice() {
+            fetch('/crypto-price')
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('crypto-price').textContent = `$${data.cryptoPrice}`;
+                });
+        }
+
+        // Обновление цены каждые 10 секунд
+        setInterval(fetchCryptoPrice, 10000);
+        fetchCryptoPrice();
+
+        // Обработка регистрации/входа
+        document.getElementById('auth-form').addEventListener('submit', function (e) {
+            e.preventDefault();
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
 
             fetch('/login', {
                 method: 'POST',
-                body: JSON.stringify({ username, password }),
-                headers: { 'Content-Type': 'application/json' }
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    currentUser = data.user;
-                    document.getElementById('user-name').textContent = currentUser.username;
-                    document.getElementById('balance').textContent = currentUser.balance;
-                    document.getElementById('crypto-balance').textContent = currentUser.cryptoBalance;
-                    document.getElementById('auth-form').style.display = 'none';
-                    document.getElementById('game-area').style.display = 'block';
-                    updateCryptoPrice(data.cryptoPrice);
-                } else {
-                    alert('Неверный логин или пароль');
-                }
-            });
-        }
-
-        // Логика для регистрации
-        function register() {
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-
-            fetch('/register', {
-                method: 'POST',
-                body: JSON.stringify({ username, password }),
-                headers: { 'Content-Type': 'application/json' }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Регистрация прошла успешно');
-                    login();
-                } else {
-                    alert('Этот никнейм уже занят');
-                }
-            });
-        }
-
-        // Логика для покупки криптовалюты
-        function buyCrypto() {
-            fetch('/buy', { method: 'POST' })
-                .then(response => response.json())
+                .then(res => res.json())
                 .then(data => {
-                    currentUser.balance = data.newBalance;
-                    currentUser.cryptoBalance += data.cryptoAmount;
-                    document.getElementById('balance').textContent = currentUser.balance;
-                    document.getElementById('crypto-balance').textContent = currentUser.cryptoBalance;
-                    updateHistory('Купил криптовалюту');
-                });
-        }
-
-        // Логика для продажи криптовалюты
-        function sellCrypto() {
-            fetch('/sell', { method: 'POST' })
-                .then(response => response.json())
-                .then(data => {
-                    currentUser.balance = data.newBalance;
-                    currentUser.cryptoBalance -= data.cryptoAmount;
-                    document.getElementById('balance').textContent = currentUser.balance;
-                    document.getElementById('crypto-balance').textContent = currentUser.cryptoBalance;
-                    updateHistory('Продал криптовалюту');
-                });
-        }
-
-        // Обновление истории операций
-        function updateHistory(action) {
-            const history = document.getElementById('history');
-            const newEntry = document.createElement('li');
-            newEntry.textContent = action;
-            history.prepend(newEntry);
-
-            // Оставляем только последние 7 операций
-            if (history.children.length > 7) {
-                history.removeChild(history.lastChild);
-            }
-        }
-
-        // Обновление графика цены криптовалюты
-        function updateCryptoPrice(price) {
-            cryptoPriceHistory.push(price);
-            if (cryptoPriceHistory.length > 10) {
-                cryptoPriceHistory.shift();
-            }
-
-            document.getElementById('crypto-price').textContent = price;
-
-            const ctx = document.getElementById('crypto-chart').getContext('2d');
-            const chart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: cryptoPriceHistory.map((_, index) => index + 1),
-                    datasets: [{
-                        label: 'Цена криптовалюты',
-                        data: cryptoPriceHistory,
-                        borderColor: 'rgba(255, 99, 132, 1)',
-                        borderWidth: 1,
-                        fill: false
-                    }]
-                },
-                options: {
-                    scales: {
-                        y: { beginAtZero: true }
+                    if (data.success) {
+                        currentUser = data.user;
+                        document.getElementById('username-display').textContent = currentUser.username;
+                        document.getElementById('balance-display').textContent = currentUser.balance;
+                        document.getElementById('crypto-balance-display').textContent = currentUser.cryptoBalance;
+                        document.getElementById('auth-form').style.display = 'none';
+                        document.getElementById('user-info').style.display = 'block';
+                        fetchCryptoPrice();
+                    } else {
+                        alert('Ошибка входа');
                     }
-                }
-            });
-        }
+                });
+        });
+
+        // Покупка криптовалюты
+        document.getElementById('buy-button').addEventListener('click', function () {
+            fetch('/buy', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: currentUser.username, amount: 1 })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        currentUser.balance = data.newBalance;
+                        currentUser.cryptoBalance = data.cryptoAmount;
+                        document.getElementById('balance-display').textContent = currentUser.balance;
+                        document.getElementById('crypto-balance-display').textContent = currentUser.cryptoBalance;
+                        alert('Куплено успешно!');
+                    } else {
+                        alert(data.message);
+                    }
+                });
+        });
+
+        // Продажа криптовалюты
+        document.getElementById('sell-button').addEventListener('click', function () {
+            fetch('/sell', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: currentUser.username, amount: 1 })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        currentUser.balance = data.newBalance;
+                        currentUser.cryptoBalance = data.cryptoAmount;
+                        document.getElementById('balance-display').textContent = currentUser.balance;
+                        document.getElementById('crypto-balance-display').textContent = currentUser.cryptoBalance;
+                        alert('Продано успешно!');
+                    } else {
+                        alert(data.message);
+                    }
+                });
+        });
     </script>
 </body>
 </html>
