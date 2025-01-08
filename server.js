@@ -1,17 +1,15 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
+const axios = require('axios'); // Для выполнения HTTP запросов
 const app = express();
-const port = process.env.PORT || 3000;
-
-
-let cryptoPrice = generateCryptoPrice(); // Начальная цена криптовалюты
+const port = process.env.PORT || 3000; // Используем PORT из переменных окружения
 
 app.use(express.json());
+app.use(express.static(path.join(__dirname)));
 
 // Чтение пользователей из файла
 function readUsers() {
-    if (!fs.existsSync('users.json')) return [];
     const data = fs.readFileSync('users.json', 'utf8');
     return JSON.parse(data);
 }
@@ -21,16 +19,21 @@ function writeUsers(users) {
     fs.writeFileSync('users.json', JSON.stringify(users, null, 2), 'utf8');
 }
 
-// Генерация цены криптовалюты
-function generateCryptoPrice() {
-    return Math.floor(Math.random() * 100) + 1; // Случайное число от 1 до 100
+// Получение текущей цены ADA с CoinGecko
+async function getCryptoPrice() {
+    try {
+        const response = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=cardano&vs_currencies=usd');
+        return response.data.cardano.usd;
+    } catch (error) {
+        console.error('Error fetching price:', error);
+        return null; // Если не удается получить цену, возвращаем null
+    }
 }
 
-// Обновление цены каждые 10 секунд
-setInterval(() => {
-    cryptoPrice = generateCryptoPrice();
-    console.log(`Новая цена криптовалюты: $${cryptoPrice}`);
-}, 10000);
+// Главная страница (index.html)
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));  // Убедитесь, что путь правильный
+});
 
 // Регистрация нового пользователя
 app.post('/register', (req, res) => {
@@ -38,7 +41,7 @@ app.post('/register', (req, res) => {
     const users = readUsers();
 
     if (users.some(user => user.username === username)) {
-        return res.json({ success: false, message: 'Имя пользователя уже занято.' });
+        return res.json({ success: false });
     }
 
     const newUser = {
@@ -46,8 +49,7 @@ app.post('/register', (req, res) => {
         password,
         balance: 1000,
         cryptoBalance: 0,
-        totalBalance: 1000, // Сумма денег и стоимости криптовалюты
-        history: ['Регистрация в игре.']
+        history: ["Иван зарегистрировался"]
     };
 
     users.push(newUser);
@@ -56,94 +58,64 @@ app.post('/register', (req, res) => {
 });
 
 // Вход пользователя
-app.post('/login', (req, res) => {
+app.post('/login', async (req, res) => {
     const { username, password } = req.body;
     const users = readUsers();
 
     const user = users.find(u => u.username === username && u.password === password);
     if (user) {
-        res.json({ success: true, user, cryptoPrice });
+        const cryptoPrice = await getCryptoPrice();  // Получаем актуальную цену ADA
+        if (cryptoPrice !== null) {
+            res.json({ success: true, user, cryptoPrice });
+        } else {
+            res.json({ success: false, message: "Не удалось получить цену криптовалюты" });
+        }
     } else {
-        res.json({ success: false, message: 'Неверное имя пользователя или пароль.' });
+        res.json({ success: false });
     }
 });
 
 // Покупка криптовалюты
-app.post('/buy', (req, res) => {
+app.post('/buy', async (req, res) => {
     const { username } = req.body;
     const users = readUsers();
     const user = users.find(u => u.username === username);
 
-    if (!user) return res.json({ success: false, message: 'Пользователь не найден.' });
+    const cryptoPrice = await getCryptoPrice();  // Получаем актуальную цену ADA
+    const cryptoAmount = Math.floor(Math.random() * 10) + 1;  // случайное количество криптовалюты
 
-    const cryptoAmount = 1; // Покупка по одной единице
-    const cost = cryptoPrice * cryptoAmount;
-
-    if (user.balance >= cost) {
-        user.balance -= cost;
+    // Проверка, хватает ли у пользователя средств
+    if (user.balance >= cryptoPrice * cryptoAmount) {
+        user.balance -= cryptoPrice * cryptoAmount;
         user.cryptoBalance += cryptoAmount;
-        user.totalBalance = user.balance + user.cryptoBalance * cryptoPrice;
-        user.history.push(`Купил ${cryptoAmount} ADA за $${cost}.`);
-        writeUsers(users);
+        user.history.push(`Купил ${cryptoAmount} криптовалюты за $${cryptoPrice * cryptoAmount}`);
 
-        res.json({
-            success: true,
-            balance: user.balance,
-            cryptoBalance: user.cryptoBalance
-        });
+        writeUsers(users);
+        res.json({ success: true, newBalance: user.balance, cryptoAmount: user.cryptoBalance });
     } else {
-        res.json({ success: false, message: 'Недостаточно средств для покупки.' });
+        res.json({ success: false, message: "Недостаточно средств для покупки" });
     }
 });
 
 // Продажа криптовалюты
-app.post('/sell', (req, res) => {
+app.post('/sell', async (req, res) => {
     const { username } = req.body;
     const users = readUsers();
     const user = users.find(u => u.username === username);
 
-    if (!user) return res.json({ success: false, message: 'Пользователь не найден.' });
+    const cryptoPrice = await getCryptoPrice();  // Получаем актуальную цену ADA
+    const cryptoAmount = Math.min(user.cryptoBalance, Math.floor(Math.random() * 10) + 1);  // случайное количество криптовалюты для продажи
 
-    const cryptoAmount = 1; // Продажа по одной единице
-    if (user.cryptoBalance >= cryptoAmount) {
-        const income = cryptoPrice * cryptoAmount;
-        user.balance += income;
+    if (cryptoAmount > 0) {
+        user.balance += cryptoPrice * cryptoAmount;
         user.cryptoBalance -= cryptoAmount;
-        user.totalBalance = user.balance + user.cryptoBalance * cryptoPrice;
-        user.history.push(`Продал ${cryptoAmount} ADA за $${income}.`);
+        user.history.push(`Продал ${cryptoAmount} криптовалюты за $${cryptoPrice * cryptoAmount}`);
+
         writeUsers(users);
-
-        res.json({
-            success: true,
-            balance: user.balance,
-            cryptoBalance: user.cryptoBalance
-        });
+        res.json({ success: true, newBalance: user.balance, cryptoAmount: user.cryptoBalance });
     } else {
-        res.json({ success: false, message: 'Недостаточно криптовалюты для продажи.' });
+        res.json({ success: false, message: "Недостаточно криптовалюты для продажи" });
     }
-});
-
-// Лидерборд
-app.get('/leaderboard', (req, res) => {
-    const { username } = req.query;
-    const users = readUsers();
-
-    // Сортировка игроков по общему балансу (убывание)
-    const sortedUsers = [...users].sort((a, b) => b.totalBalance - a.totalBalance);
-
-    const top = sortedUsers.slice(0, 3).map(user => ({
-        username: user.username,
-        total: user.totalBalance
-    }));
-
-    const userRank = sortedUsers.findIndex(user => user.username === username) + 1;
-
-    res.json({ top, userRank });
-});
-
-// Получение текущей цены криптовалюты
-app.get('/crypto-price', (req, res) => {
-    res.json({ cryptoPrice });
 });
 
 // Запуск сервера
