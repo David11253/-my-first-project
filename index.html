@@ -1,10 +1,9 @@
-
-   <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Игра с криптовалютой</title>
+    <title>Криптовалютная игра</title>
 </head>
 <body>
     <h1>Криптовалютная игра</h1>
@@ -12,27 +11,29 @@
     <h2>Текущая цена криптовалюты: <span id="crypto-price">Загрузка...</span></h2>
 
     <div id="user-info" style="display:none;">
-        <h3>Привет, <span id="username-display"></span>!</h3>
-        <p>Баланс: <span id="balance-display">0</span>$</p>
-        <p>Криптовалюта: <span id="crypto-balance-display">0</span></p>
-        <button id="buy-button">Купить</button>
-        <button id="sell-button">Продать</button>
+        <h3>Добро пожаловать, <span id="username-display"></span>!</h3>
+        <p>Ваш баланс: <span id="balance-display">0</span>$</p>
+        <p>Ваш баланс криптовалюты: <span id="crypto-balance-display">0</span></p>
+
+        <button id="buy-button">Купить 1 криптовалюту</button>
+        <button id="sell-button">Продать 1 криптовалюту</button>
+
         <h3>История операций:</h3>
         <ul id="history"></ul>
     </div>
 
     <form id="auth-form">
-        <h3>Регистрация / Вход</h3>
-        <label>Никнейм: <input type="text" id="username"></label><br>
-        <label>Пароль: <input type="password" id="password"></label><br>
-        <button type="submit">Войти / Зарегистрироваться</button>
+        <h3>Войти или зарегистрироваться</h3>
+        <label>Имя пользователя: <input type="text" id="username" required></label><br>
+        <label>Пароль: <input type="password" id="password" required></label><br>
+        <button type="submit">Отправить</button>
     </form>
 
     <script>
         let currentUser = null;
 
-        // Функция для получения текущей цены
-        function fetchCryptoPrice() {
+        // Обновление цены криптовалюты
+        function updateCryptoPrice() {
             fetch('/crypto-price')
                 .then(res => res.json())
                 .then(data => {
@@ -40,13 +41,14 @@
                 });
         }
 
-        // Обновление цены каждые 10 секунд
-        setInterval(fetchCryptoPrice, 10000);
-        fetchCryptoPrice();
+        // Установка интервала для обновления цены каждые 10 секунд
+        setInterval(updateCryptoPrice, 10000);
+        updateCryptoPrice();
 
-        // Обработка регистрации/входа
+        // Обработка формы авторизации
         document.getElementById('auth-form').addEventListener('submit', function (e) {
             e.preventDefault();
+
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
 
@@ -62,11 +64,13 @@
                         document.getElementById('username-display').textContent = currentUser.username;
                         document.getElementById('balance-display').textContent = currentUser.balance;
                         document.getElementById('crypto-balance-display').textContent = currentUser.cryptoBalance;
+
                         document.getElementById('auth-form').style.display = 'none';
                         document.getElementById('user-info').style.display = 'block';
-                        fetchCryptoPrice();
+
+                        updateCryptoPrice();
                     } else {
-                        alert('Ошибка входа');
+                        alert(data.message || 'Ошибка входа.');
                     }
                 });
         });
@@ -81,11 +85,9 @@
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
-                        currentUser.balance = data.newBalance;
-                        currentUser.cryptoBalance = data.cryptoAmount;
-                        document.getElementById('balance-display').textContent = currentUser.balance;
-                        document.getElementById('crypto-balance-display').textContent = currentUser.cryptoBalance;
-                        alert('Куплено успешно!');
+                        document.getElementById('balance-display').textContent = data.balance;
+                        document.getElementById('crypto-balance-display').textContent = data.cryptoBalance;
+                        alert('Криптовалюта куплена!');
                     } else {
                         alert(data.message);
                     }
@@ -102,11 +104,9 @@
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
-                        currentUser.balance = data.newBalance;
-                        currentUser.cryptoBalance = data.cryptoAmount;
-                        document.getElementById('balance-display').textContent = currentUser.balance;
-                        document.getElementById('crypto-balance-display').textContent = currentUser.cryptoBalance;
-                        alert('Продано успешно!');
+                        document.getElementById('balance-display').textContent = data.balance;
+                        document.getElementById('crypto-balance-display').textContent = data.cryptoBalance;
+                        alert('Криптовалюта продана!');
                     } else {
                         alert(data.message);
                     }
