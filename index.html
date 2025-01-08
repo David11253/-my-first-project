@@ -21,163 +21,187 @@
             margin-top: 20px;
         }
 
-        h2, h3 {
-            margin: 15px 0;
-        }
-
-        p {
-            margin: 10px 0;
-        }
-
-        form, #user-info {
+        form, #user-info, #leaderboard {
             background-color: #1e1e1e;
             padding: 20px;
             border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
-            margin: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+            margin-bottom: 20px;
             width: 300px;
-        }
-
-        input, button {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 5px;
-            border: none;
-            font-size: 16px;
-        }
-
-        input {
-            background-color: #2c2c2c;
-            color: #ffffff;
+            text-align: center;
         }
 
         button {
+            margin: 5px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
             background-color: #00ff6a;
-            color: #000000;
+            color: #000;
+            font-size: 16px;
             cursor: pointer;
-            font-weight: bold;
         }
 
         button:hover {
-            background-color: #00cc54;
+            background-color: #00d455;
         }
 
-        ul {
-            list-style-type: none;
-            padding: 0;
+        #leaderboard {
+            width: 400px;
         }
 
-        ul li {
-            background-color: #2c2c2c;
-            padding: 8px;
-            margin: 5px 0;
-            border-radius: 4px;
+        #crypto-price {
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+
+        .hidden {
+            display: none;
         }
     </style>
 </head>
 <body>
     <h1>Криптовалютная игра</h1>
-    <h2>Текущая цена криптовалюты: <span id="crypto-price">Загрузка...</span></h2>
 
-    <div id="user-info" style="display:none;">
-        <h3>Добро пожаловать, <span id="username-display"></span>!</h3>
-        <p>Ваш баланс: <span id="balance-display">0</span>$</p>
-        <p>Ваш баланс криптовалюты: <span id="crypto-balance-display">0</span></p>
-
-        <button id="buy-button">Купить 1 криптовалюту</button>
-        <button id="sell-button">Продать 1 криптовалюту</button>
-
-        <h3>История операций:</h3>
-        <ul id="history"></ul>
-    </div>
-
+    <!-- Форма регистрации и входа -->
     <form id="auth-form">
-        <h3>Войти или зарегистрироваться</h3>
-        <label>Имя пользователя: <input type="text" id="username" required></label><br>
-        <label>Пароль: <input type="password" id="password" required></label><br>
-        <button type="submit">Отправить</button>
+        <h2>Вход / Регистрация</h2>
+        <input type="text" id="username" placeholder="Имя пользователя" required>
+        <input type="password" id="password" placeholder="Пароль" required>
+        <button type="button" id="register-btn">Зарегистрироваться</button>
+        <button type="button" id="login-btn">Войти</button>
     </form>
 
+    <!-- Информация о пользователе -->
+    <div id="user-info" class="hidden">
+        <h2>Добро пожаловать, <span id="user-name"></span>!</h2>
+        <p>Баланс: $<span id="balance"></span></p>
+        <p>Криптовалюта: <span id="crypto-balance"></span> ADA</p>
+        <p id="crypto-price">Цена ADA: $<span id="crypto-price-value"></span></p>
+        <button id="buy-btn">Купить криптовалюту</button>
+        <button id="sell-btn">Продать криптовалюту</button>
+    </div>
+
+    <!-- Лидерборд -->
+    <div id="leaderboard" class="hidden">
+        <h2>Топ-3 игроков</h2>
+        <ul id="top-players">
+            <!-- Игроки будут добавлены через JavaScript -->
+        </ul>
+        <h3>Ваше место: <span id="user-rank"></span></h3>
+    </div>
+
     <script>
-        // Скрипт остается таким же, как в предыдущем коде
         let currentUser = null;
 
-        function updateCryptoPrice() {
-            fetch('/crypto-price')
-                .then(res => res.json())
-                .then(data => {
-                    document.getElementById('crypto-price').textContent = `$${data.cryptoPrice}`;
-                });
+        async function fetchCryptoPrice() {
+            const response = await fetch('/crypto-price');
+            const data = await response.json();
+            document.getElementById('crypto-price-value').innerText = data.cryptoPrice;
+            return data.cryptoPrice;
         }
 
-        setInterval(updateCryptoPrice, 10000);
-        updateCryptoPrice();
+        async function updateLeaderboard() {
+            const response = await fetch('/leaderboard');
+            const data = await response.json();
 
-        document.getElementById('auth-form').addEventListener('submit', function (e) {
-            e.preventDefault();
+            const topPlayers = document.getElementById('top-players');
+            topPlayers.innerHTML = '';
+            data.top.forEach((player, index) => {
+                const li = document.createElement('li');
+                li.innerText = `${index + 1}. ${player.username}: $${player.total}`;
+                topPlayers.appendChild(li);
+            });
 
+            document.getElementById('user-rank').innerText = data.userRank;
+        }
+
+        async function handleRegister() {
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
 
-            fetch('/login', {
+            const response = await fetch('/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, password })
-            })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        currentUser = data.user;
-                        document.getElementById('username-display').textContent = currentUser.username;
-                        document.getElementById('balance-display').textContent = currentUser.balance;
-                        document.getElementById('crypto-balance-display').textContent = currentUser.cryptoBalance;
+            });
 
-                        document.getElementById('auth-form').style.display = 'none';
-                        document.getElementById('user-info').style.display = 'block';
+            const data = await response.json();
+            if (data.success) {
+                alert('Регистрация успешна! Теперь войдите.');
+            } else {
+                alert(data.message || 'Ошибка регистрации.');
+            }
+        }
 
-                        updateCryptoPrice();
-                    } else {
-                        alert(data.message || 'Ошибка входа.');
-                    }
-                });
-        });
+        async function handleLogin() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
 
-        document.getElementById('buy-button').addEventListener('click', function () {
-            fetch('/buy', {
+            const response = await fetch('/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username: currentUser.username, amount: 1 })
-            })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        document.getElementById('balance-display').textContent = data.balance;
-                        document.getElementById('crypto-balance-display').textContent = data.cryptoBalance;
-                        alert('Криптовалюта куплена!');
-                    } else {
-                        alert(data.message);
-                    }
-                });
-        });
+                body: JSON.stringify({ username, password })
+            });
 
-        document.getElementById('sell-button').addEventListener('click', function () {
-            fetch('/sell', {
+            const data = await response.json();
+            if (data.success) {
+                currentUser = data.user;
+                document.getElementById('user-name').innerText = currentUser.username;
+                document.getElementById('balance').innerText = currentUser.balance;
+                document.getElementById('crypto-balance').innerText = currentUser.cryptoBalance;
+
+                document.getElementById('auth-form').classList.add('hidden');
+                document.getElementById('user-info').classList.remove('hidden');
+                document.getElementById('leaderboard').classList.remove('hidden');
+
+                fetchCryptoPrice();
+                updateLeaderboard();
+            } else {
+                alert(data.message || 'Ошибка входа.');
+            }
+        }
+
+        async function handleBuy() {
+            const response = await fetch('/buy', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username: currentUser.username, amount: 1 })
-            })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        document.getElementById('balance-display').textContent = data.balance;
-                        document.getElementById('crypto-balance-display').textContent = data.cryptoBalance;
-                        alert('Криптовалюта продана!');
-                    } else {
-                        alert(data.message);
-                    }
-                });
-        });
+                body: JSON.stringify({ username: currentUser.username })
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                document.getElementById('balance').innerText = data.balance;
+                document.getElementById('crypto-balance').innerText = data.cryptoBalance;
+                updateLeaderboard();
+            } else {
+                alert(data.message || 'Ошибка покупки.');
+            }
+        }
+
+        async function handleSell() {
+            const response = await fetch('/sell', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: currentUser.username })
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                document.getElementById('balance').innerText = data.balance;
+                document.getElementById('crypto-balance').innerText = data.cryptoBalance;
+                updateLeaderboard();
+            } else {
+                alert(data.message || 'Ошибка продажи.');
+            }
+        }
+
+        document.getElementById('register-btn').addEventListener('click', handleRegister);
+        document.getElementById('login-btn').addEventListener('click', handleLogin);
+        document.getElementById('buy-btn').addEventListener('click', handleBuy);
+        document.getElementById('sell-btn').addEventListener('click', handleSell);
+
+        setInterval(fetchCryptoPrice, 10000); // Обновляем цену каждые 10 секунд
     </script>
 </body>
 </html>
