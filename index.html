@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Криптовалютная игра</title>
-</head>
-<body>
-     <style>
+    <style>
         body {
             font-family: Arial, sans-serif;
             background-color: #121212;
@@ -77,8 +75,9 @@
             border-radius: 4px;
         }
     </style>
+</head>
+<body>
     <h1>Криптовалютная игра</h1>
-
     <h2>Текущая цена криптовалюты: <span id="crypto-price">Загрузка...</span></h2>
 
     <div id="user-info" style="display:none;">
@@ -101,9 +100,9 @@
     </form>
 
     <script>
+        // Скрипт остается таким же, как в предыдущем коде
         let currentUser = null;
 
-        // Обновление цены криптовалюты
         function updateCryptoPrice() {
             fetch('/crypto-price')
                 .then(res => res.json())
@@ -112,11 +111,9 @@
                 });
         }
 
-        // Установка интервала для обновления цены каждые 10 секунд
         setInterval(updateCryptoPrice, 10000);
         updateCryptoPrice();
 
-        // Обработка формы авторизации
         document.getElementById('auth-form').addEventListener('submit', function (e) {
             e.preventDefault();
 
@@ -146,7 +143,6 @@
                 });
         });
 
-        // Покупка криптовалюты
         document.getElementById('buy-button').addEventListener('click', function () {
             fetch('/buy', {
                 method: 'POST',
@@ -165,7 +161,6 @@
                 });
         });
 
-        // Продажа криптовалюты
         document.getElementById('sell-button').addEventListener('click', function () {
             fetch('/sell', {
                 method: 'POST',
