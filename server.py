@@ -1,131 +1,108 @@
-import json
-import random
-import requests
 from flask import Flask, jsonify, request, send_from_directory
+import random
+import json
 
-app = Flask(__name__, static_url_path='', static_folder='static')
+app = Flask(__name__)
 
-# Чтение пользователей
+# Чтение пользователей из файла
 def read_users():
-    with open('users.json', 'r', encoding='utf-8') as f:
-        return json.load(f)
+    with open('users.json', 'r') as file:
+        return json.load(file)
 
-# Запись пользователей
+# Запись пользователей в файл
 def write_users(users):
-    with open('users.json', 'w', encoding='utf-8') as f:
-        json.dump(users, f, indent=2)
+    with open('users.json', 'w') as file:
+        json.dump(users, file, indent=4)
 
-# Получение актуальной цены ADA (с изменениями не более 10%)
-def get_crypto_price():
-    try:
-        response = requests.get('https://api.coingecko.com/api/v3/simple/price?ids=cardano&vs_currencies=usd')
-        base_price = response.json()['cardano']['usd']
-        # Генерация случайных колебаний цены в пределах 10%
-        fluctuation = random.uniform(0.9, 1.1)
-        return round(base_price * fluctuation, 2)
-    except requests.exceptions.RequestException as e:
-        print(f"Ошибка при получении цены: {e}")
-        return None
-
-# Главная страница (index.html)
+# Роут для главной страницы
 @app.route('/')
-def index():
-    return send_from_directory('static', 'index.html')
+def home():
+    return send_from_directory('.', 'index.html')
 
-# Регистрация нового пользователя
+# Роут для регистрации пользователя
 @app.route('/register', methods=['POST'])
 def register():
-    data = request.get_json()
-    username = data.get('username')
-    password = data.get('password')
-
+    data = request.json
+    username = data['username']
+    password = data['password']
+    
     users = read_users()
-
+    
     if any(user['username'] == username for user in users):
-        return jsonify({'success': False, 'message': 'Пользователь с таким именем уже существует'})
-
+        return jsonify({'success': False, 'message': 'User already exists'}), 400
+    
     new_user = {
         'username': username,
         'password': password,
         'balance': 1000,
-        'cryptoBalance': 0,
+        'crypto_balance': 0,
         'history': []
     }
-
+    
     users.append(new_user)
     write_users(users)
     return jsonify({'success': True})
 
-# Вход пользователя
+# Роут для входа
 @app.route('/login', methods=['POST'])
 def login():
-    data = request.get_json()
-    username = data.get('username')
-    password = data.get('password')
-
+    data = request.json
+    username = data['username']
+    password = data['password']
+    
     users = read_users()
-    user = next((u for u in users if u['username'] == username and u['password'] == password), None)
-
+    user = next((user for user in users if user['username'] == username and user['password'] == password), None)
+    
     if user:
-        return jsonify({'success': True, 'user': user, 'cryptoPrice': get_crypto_price()})
+        return jsonify({'success': True, 'user': user})
     else:
-        return jsonify({'success': False, 'message': 'Неверные имя пользователя или пароль'})
+        return jsonify({'success': False, 'message': 'Invalid credentials'}), 400
 
-# Покупка криптовалюты
+# Роут для покупки криптовалюты
 @app.route('/buy', methods=['POST'])
-def buy():
-    data = request.get_json()
-    username = data.get('username')
+def buy_crypto():
+    data = request.json
+    username = data['username']
     
     users = read_users()
-    user = next((u for u in users if u['username'] == username), None)
-
+    user = next((user for user in users if user['username'] == username), None)
+    
     if user:
-        crypto_price = get_crypto_price()
-        crypto_amount = random.randint(1, 10)
-
-        if user['balance'] >= crypto_price * crypto_amount:
-            user['balance'] -= crypto_price * crypto_amount
-            user['cryptoBalance'] += crypto_amount
-            user['history'].append(f"Купил {crypto_amount} криптовалюты за ${crypto_price * crypto_amount}")
+        price = random.uniform(0.5, 2.0)  # Генерация случайной цены
+        amount = random.randint(1, 10)  # Генерация случайного количества криптовалюты
+        
+        if user['balance'] >= price * amount:
+            user['balance'] -= price * amount
+            user['crypto_balance'] += amount
+            user['history'].append(f"Bought {amount} crypto for ${price * amount:.2f}")
             write_users(users)
+            return jsonify({'success': True, 'new_balance': user['balance'], 'crypto_balance': user['crypto_balance']})
+        else:
+            return jsonify({'success': False, 'message': 'Not enough balance'}), 400
+    else:
+        return jsonify({'success': False, 'message': 'User not found'}), 400
 
-            return jsonify({'success': True, 'balance': user['balance'], 'cryptoBalance': user['cryptoBalance']})
-
-    return jsonify({'success': False, 'message': 'Недостаточно средств для покупки'})
-
-# Продажа криптовалюты
+# Роут для продажи криптовалюты
 @app.route('/sell', methods=['POST'])
-def sell():
-    data = request.get_json()
-    username = data.get('username')
+def sell_crypto():
+    data = request.json
+    username = data['username']
     
     users = read_users()
-    user = next((u for u in users if u['username'] == username), None)
-
-    if user:
-        crypto_price = get_crypto_price()
-        crypto_amount = random.randint(1, user['cryptoBalance'])
-
-        if crypto_amount > 0:
-            user['balance'] += crypto_price * crypto_amount
-            user['cryptoBalance'] -= crypto_amount
-            user['history'].append(f"Продал {crypto_amount} криптовалюты за ${crypto_price * crypto_amount}")
-            write_users(users)
-
-            return jsonify({'success': True, 'balance': user['balance'], 'cryptoBalance': user['cryptoBalance']})
-
-    return jsonify({'success': False, 'message': 'Недостаточно криптовалюты для продажи'})
-
-# Топ игроков
-@app.route('/leaderboard', methods=['GET'])
-def leaderboard():
-    users = read_users()
-    sorted_users = sorted(users, key=lambda x: x['balance'], reverse=True)[:3]
-    top_players = [{'username': u['username'], 'total': u['balance']} for u in sorted_users]
-    user_rank = next((index + 1 for index, u in enumerate(sorted_users) if u['username'] == request.args.get('username')), None)
-
-    return jsonify({'top': top_players, 'userRank': user_rank})
+    user = next((user for user in users if user['username'] == username), None)
+    
+    if user and user['crypto_balance'] > 0:
+        price = random.uniform(0.5, 2.0)  # Генерация случайной цены
+        amount = random.randint(1, user['crypto_balance'])  # Количество криптовалюты для продажи
+        
+        user['balance'] += price * amount
+        user['crypto_balance'] -= amount
+        user['history'].append(f"Sold {amount} crypto for ${price * amount:.2f}")
+        write_users(users)
+        
+        return jsonify({'success': True, 'new_balance': user['balance'], 'crypto_balance': user['crypto_balance']})
+    else:
+        return jsonify({'success': False, 'message': 'Not enough crypto to sell'}), 400
 
 if __name__ == '__main__':
     app.run(debug=True)
