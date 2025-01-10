@@ -1,12 +1,20 @@
 {
-  "name": "crypto-game-server",
+  "name": "crypto-game",
   "version": "1.0.0",
-  "main": "app.js",
+  "description": "Cryptocurrency game project",
+  "main": "index.html",
   "scripts": {
-    "start": "node app.js"
+    "start": "python server.py",
+    "build": "echo 'No build command'",
+    "test": "echo 'No tests yet'"
   },
   "dependencies": {
-    "express": "^4.17.1",
-    "axios": "^0.21.1"
-  }
+    "axios": "^0.21.1", 
+    "lodash": "^4.17.21"
+  },
+  "devDependencies": {
+    "webpack": "^5.0.0"
+  },
+  "author": "",
+  "license": "ISC"
 }
