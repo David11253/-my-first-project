@@ -2,8 +2,11 @@ from flask import Flask, jsonify, request, send_from_directory
 import random
 import json
 
+from flask import Flask, jsonify, request, send_from_directory
 app = Flask(__name__)
 
+if __name__ == '__main__':
+    app.run()
 # Чтение пользователей из файла
 def read_users():
     with open('users.json', 'r') as file:
