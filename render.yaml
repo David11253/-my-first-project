@@ -1,0 +1,10 @@
+services:
+- type: web
+  name: my-first-project
+  runtime: python
+  repo: https://github.com/David11253/-my-first-project
+  plan: free
+  region: frankfurt
+  buildCommand: pip install -r requirements.txt
+  startCommand: python server.py
+version: "1"
