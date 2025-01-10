@@ -1,7 +1,7 @@
 services:
   - type: web
     name: my-flask-app
-    repo: https://github.com/David11253/my-flask-app  # Укажите ваш репозиторий
+    repo: https://github.com/David11253/-my-first-project   # Укажите ваш репозиторий
     plan: free
     region: frankfurt
     buildCommand: pip install -r requirements.txt
